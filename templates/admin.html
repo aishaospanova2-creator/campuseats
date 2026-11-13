@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>CampusEats — Админ-панель</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-gray-50 min-h-screen text-gray-800 pb-16">
+
+    <!-- Экран авторизации с выводом ошибки -->
+    <div id="auth-screen" class="fixed inset-0 bg-gray-900/80 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl space-y-4">
+            <h2 class="text-xl font-black text-gray-900">🔐 Вход в админ-панель</h2>
+            <p class="text-sm text-gray-500">Введите пароль для доступа к управлению столовой.</p>
+            
+            <form onsubmit="checkPassword(event)" class="space-y-4">
+                <div>
+                    <input type="password" id="admin-pass" placeholder="Пароль (например: admin123)" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                    <!-- Блок для вывода ошибки -->
+                    <p id="error-msg" class="text-red-500 text-xs font-bold mt-1.5 hidden">❌ Неверный пароль! Попробуйте еще раз.</p>
+                </div>
+                <button type="submit" class="w-full bg-orange-600 hover:bg-orange-500 text-white font-bold py-3 rounded-xl transition cursor-pointer">Войти</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Основной интерфейс админки -->
+    <div id="admin-content" class="hidden">
+        <header class="bg-gray-900 text-white shadow-md sticky top-0 z-40">
+            <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">⚙️</span>
+                    <h1 class="text-xl font-black tracking-wide text-orange-400">Управление меню</h1>
+                </div>
+                <a href="/" class="text-sm font-bold text-gray-300 hover:underline">На сайт ↗</a>
+            </div>
+        </header>
+
+        <main class="max-w-6xl mx-auto px-6 py-8 space-y-8">
+            <!-- Добавить / Редактировать блюдо -->
+            <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
+                <h2 id="form-title" class="text-lg font-bold text-gray-900 mb-4">➕ Добавить новое блюдо</h2>
+                <form onsubmit="saveDish(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                    <input type="hidden" id="edit-id">
+                    <input type="text" id="title" required placeholder="Название блюда" class="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    <input type="number" id="price" required placeholder="Цена (₸)" class="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    <select id="category" class="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500">
+                        <option value="Первые блюда">Первые блюда</option>
+                        <option value="Вторые блюда">Вторые блюда</option>
+                        <option value="Выпечка">Выпечка</option>
+                        <option value="Напитки">Напитки</option>
+                    </select>
+                    <input type="text" id="image" required placeholder="Ссылка на фото (URL)" class="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    <button type="submit" id="submit-btn" class="sm:col-span-4 bg-orange-600 hover:bg-orange-500 text-white font-bold py-3 rounded-xl transition cursor-pointer">Добавить в меню</button>
+                </form>
+            </div>
+
+            <!-- Список блюд -->
+            <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
+                <h2 class="text-lg font-bold text-gray-900 mb-4">🍽️ Существующие блюда</h2>
+                <div id="dishes-list" class="space-y-3">
+                    <!-- Загружается через JS -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Установите здесь ваш конкретный пароль администратора
+        const ADMIN_PASSWORD = "admin123";
+
+        function checkPassword(e) {
+            e.preventDefault();
+            const pass = document.getElementById('admin-pass').value;
+            const errorText = document.getElementById('error-msg');
+
+            if (pass === ADMIN_PASSWORD) {
+                errorText.classList.add('hidden');
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('admin-content').classList.remove('hidden');
+                loadAdminDishes();
+            } else {
+                // Показываем красивую ошибку и делаем рамку поля красной
+                errorText.classList.remove('hidden');
+                const inputField = document.getElementById('admin-pass');
+                inputField.classList.add('border-red-500', 'bg-red-50');
+                
+                // Убираем фокус и очищаем поле для удобства
+                inputField.value = '';
+                inputField.focus();
+            }
+        }
+
+        async function loadAdminDishes() {
+            const res = await fetch('/api/dishes?all=true');
+            const dishes = await res.json();
+            const container = document.getElementById('dishes-list');
+
+            if (dishes.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 text-sm">Меню пусто</p>';
+                return;
+            }
+
+            container.innerHTML = dishes.map(d => `
+                <div class="flex items-center justify-between bg-gray-50 p-4 rounded-2xl border border-gray-200 gap-4 ${d.is_hidden ? 'opacity-50' : ''}">
+                    <div class="flex items-center gap-4">
+                        <img src="${d.image}" class="w-14 h-14 rounded-xl object-cover">
+                        <div>
+                            <h4 class="font-bold text-gray-900 text-sm">${d.title} ${d.is_hidden ? '<span class="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-md ml-2">Скрыто</span>' : ''}</h4>
+                            <span class="text-xs text-gray-500">${d.category} • <strong class="text-orange-600">${d.price} ₸</strong></span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="editDish(${d.id}, '${d.title}', ${d.price}, '${d.category}', '${d.image}')" class="bg-blue-100 hover:bg-blue-200 text-blue-600 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer">Изменить</button>
+                        <button onclick="toggleHide(${d.id}, ${d.is_hidden})" class="px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${d.is_hidden ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-amber-100 text-amber-700 hover:bg-amber-200'}">
+                            ${d.is_hidden ? 'Показать' : 'Скрыть'}
+                        </button>
+                        <button onclick="deleteDish(${d.id})" class="bg-red-100 hover:bg-red-200 text-red-600 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer">Удалить</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function editDish(id, title, price, category, image) {
+            document.getElementById('edit-id').value = id;
+            document.getElementById('title').value = title;
+            document.getElementById('price').value = price;
+            document.getElementById('category').value = category;
+            document.getElementById('image').value = image;
+
+            document.getElementById('form-title').innerText = '✏️ Редактировать блюдо';
+            document.getElementById('submit-btn').innerText = 'Сохранить изменения';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        async function saveDish(e) {
+            e.preventDefault();
+            const id = document.getElementById('edit-id').value;
+            const title = document.getElementById('title').value;
+            const price = document.getElementById('price').value;
+            const category = document.getElementById('category').value;
+            const image = document.getElementById('image').value;
+
+            if (id) {
+                await fetch(`/api/dishes/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, price, category, image })
+                });
+            } else {
+                await fetch('/api/dishes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, price, category, image, is_hidden: false })
+                });
+            }
+
+            document.getElementById('edit-id').value = '';
+            document.getElementById('title').value = '';
+            document.getElementById('price').value = '';
+            document.getElementById('image').value = '';
+            document.getElementById('form-title').innerText = '➕ Добавить новое блюдо';
+            document.getElementById('submit-btn').innerText = 'Добавить в меню';
+
+            loadAdminDishes();
+        }
+
+        async function toggleHide(id, currentStatus) {
+            await fetch(`/api/dishes/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ is_hidden: !currentStatus })
+            });
+            loadAdminDishes();
+        }
+
+        async function deleteDish(id) {
+            if (confirm('Точно удалить блюдо?')) {
+                await fetch(`/api/dishes/${id}`, { method: 'DELETE' });
+                loadAdminDishes();
+            }
+        }
+    </script>
+</body>
+</html>
