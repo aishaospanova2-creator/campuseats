@@ -13,11 +13,16 @@
         <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
             <div class="flex items-center space-x-3">
                 <div class="bg-orange-500 text-white p-2 rounded-lg font-bold text-lg">🔔</div>
-                <h1 class="text-xl font-bold">Панель кассы и кухни</h1>
+                <h1 class="text-xl font-bold">Панель кассы и кухни (Просмотр)</h1>
             </div>
-            <div class="flex space-x-4">
+            <div class="flex items-center space-x-4">
+                <!-- Фильтр по датам -->
+                <div class="flex items-center space-x-2 bg-slate-800 px-3 py-1.5 rounded-lg text-sm">
+                    <span class="text-gray-300">Дата:</span>
+                    <input type="date" id="order-date-filter" onchange="loadOrders()" class="bg-slate-700 text-white px-2 py-1 rounded focus:outline-none">
+                </div>
                 <a href="/" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition">На сайт ↗</a>
-                <a href="/admin" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition">Админка ↗</a>
+                <a href="/admin" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition">Админка (Изменение статусов) ↗</a>
             </div>
         </div>
     </header>
@@ -28,9 +33,7 @@
         <!-- Колонка 1: Готовятся -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col h-[75vh]">
             <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
-                <h2 class="font-bold text-gray-800 flex items-center gap-2">
-                    ⏳ Готовятся
-                </h2>
+                <h2 class="font-bold text-gray-800 flex items-center gap-2">⏳ Готовятся</h2>
                 <span id="count-preparing" class="bg-orange-100 text-orange-700 text-xs font-bold px-2.5 py-1 rounded-full">0</span>
             </div>
             <div id="col-preparing" class="space-y-4 overflow-y-auto flex-1 pr-1">
@@ -41,9 +44,7 @@
         <!-- Колонка 2: Готовы к выдаче -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col h-[75vh]">
             <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
-                <h2 class="font-bold text-gray-800 flex items-center gap-2">
-                    ✅ Готовы к выдаче
-                </h2>
+                <h2 class="font-bold text-gray-800 flex items-center gap-2">✅ Готовы к выдаче</h2>
                 <span id="count-ready" class="bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full">0</span>
             </div>
             <div id="col-ready" class="space-y-4 overflow-y-auto flex-1 pr-1">
@@ -54,9 +55,7 @@
         <!-- Колонка 3: Выданные -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col h-[75vh]">
             <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
-                <h2 class="font-bold text-gray-800 flex items-center gap-2">
-                    🎉 Выданные
-                </h2>
+                <h2 class="font-bold text-gray-800 flex items-center gap-2">🎉 Выданные</h2>
                 <span id="count-completed" class="bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-full">0</span>
             </div>
             <div id="col-completed" class="space-y-4 overflow-y-auto flex-1 pr-1">
@@ -66,33 +65,18 @@
 
     </main>
 
-    <!-- Скрипт загрузки, отрисовки и смены статусов -->
     <script>
+        // Устанавливаем текущую дату в инпут при загрузке
+        document.getElementById('order-date-filter').valueAsDate = new Date();
+
         async function loadOrders() {
+            const selectedDate = document.getElementById('order-date-filter').value;
             try {
-                const response = await fetch('/api/orders');
+                const response = await fetch(`/api/orders?date=${selectedDate}`);
                 const orders = await response.json();
                 renderKanban(orders);
             } catch (error) {
                 console.error('Ошибка загрузки заказов:', error);
-            }
-        }
-
-        async function changeStatus(orderId, newStatus) {
-            try {
-                const res = await fetch(`/api/orders/${orderId}`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ status: newStatus })
-                });
-                const result = await res.json();
-                if (result.success) {
-                    loadOrders(); // Перезагружаем список, чтобы карточка переместилась в нужную колонку
-                } else {
-                    alert('Не удалось обновить статус заказа');
-                }
-            } catch (err) {
-                console.error('Ошибка сети:', err);
             }
         }
 
@@ -110,9 +94,9 @@
             let compCount = 0;
 
             if (orders.length === 0) {
-                prepCol.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">Нет активных заказов</p>';
-                readyCol.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">Нет готовых заказов</p>';
-                compCol.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">Нет выданных заказов</p>';
+                prepCol.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">Нет заказов на эту дату</p>';
+                readyCol.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">Нет заказов на эту дату</p>';
+                compCol.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">Нет заказов на эту дату</p>';
                 
                 document.getElementById('count-preparing').innerText = '0';
                 document.getElementById('count-ready').innerText = '0';
@@ -128,18 +112,8 @@
                     itemsList = [{ title: order.items, price: order.total_price }];
                 }
 
-                // Кнопка переключения статуса в зависимости от текущего положения заказа
-                let actionButton = '';
-                const status = order.status || 'Новый';
-                
-                if (status === 'Новый' || status === 'Готовятся') {
-                    actionButton = `<button onclick="changeStatus(${order.id}, 'Готов к выдаче')" class="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-1.5 rounded-lg transition shadow-sm">Готов к выдаче ➔</button>`;
-                } else if (status === 'Готов к выдаче') {
-                    actionButton = `<button onclick="changeStatus(${order.id}, 'Выдан')" class="w-full mt-3 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold py-1.5 rounded-lg transition shadow-sm">Выдать заказ ✓</button>`;
-                }
-
                 const card = document.createElement('div');
-                card.className = 'bg-gray-50 border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow transition';
+                card.className = 'bg-gray-50 border border-gray-200 rounded-xl p-4 shadow-sm';
                 card.innerHTML = `
                     <div class="flex justify-between items-start mb-2">
                         <span class="font-bold text-gray-900">Заказ #${order.id}</span>
@@ -150,6 +124,7 @@
                         <p><b>Группа:</b> ${order.group_id || 'Не указана'}</p>
                         <p><b>Время:</b> ${order.pickup_time || 'Ближайшее'}</p>
                         <p><b>Оплата:</b> ${order.payment_method || 'Наличные'}</p>
+                        <p class="text-gray-400 text-[10px]">Дата: ${order.created_at}</p>
                     </div>
                     <div class="border-t border-gray-200 pt-2 mt-2">
                         <p class="text-xs font-bold text-gray-700 mb-1">Состав:</p>
@@ -157,9 +132,9 @@
                             ${itemsList.map(i => `<li>• ${i.title} (${i.price} ₸)</li>`).join('')}
                         </ul>
                     </div>
-                    ${actionButton}
                 `;
 
+                const status = order.status || 'Новый';
                 if (status === 'Новый' || status === 'Готовятся') {
                     prepCount++;
                     prepCol.appendChild(card);
@@ -176,9 +151,9 @@
             document.getElementById('count-ready').innerText = readyCount;
             document.getElementById('count-completed').innerText = compCount;
 
-            if (prepCount === 0) prepCol.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">Нет активных заказов</p>';
-            if (readyCount === 0) readyCol.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">Нет готовых заказов</p>';
-            if (compCount === 0) compCol.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">Нет выданных заказов</p>';
+            if (prepCount === 0) prepCol.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">Нет заказов</p>';
+            if (readyCount === 0) readyCol.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">Нет заказов</p>';
+            if (compCount === 0) compCol.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">Нет заказов</p>';
         }
 
         // Автообновление каждые 3 секунды
