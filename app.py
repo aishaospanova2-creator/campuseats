@@ -172,5 +172,18 @@ def handle_orders():
         print(f"Error creating order: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
+# API для обновления статуса заказа (перемещение по колонкам кассы)
+@app.route('/api/orders/<int:order_id>', methods=['PATCH', 'PUT'])
+def update_order_status(order_id):
+    order = OrderModel.query.get_or_404(order_id)
+    data = request.get_json() or {}
+    
+    if 'status' in data:
+        order.status = data['status']
+        db.session.commit()
+        return jsonify({"success": True}), 200
+        
+    return jsonify({"success": False, "error": "No status provided"}), 400
+
 if __name__ == '__main__':
     app.run(debug=True)
