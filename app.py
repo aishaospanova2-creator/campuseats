@@ -31,20 +31,20 @@ with app.app_context():
     if DishModel.query.count() == 0:
         default_dishes = [
             # Первые блюда
-            {"title": "Суп куриный с лапшой", "price": 450, "category": "Первые блюда", "image": "soup.jpg"},
-            {"title": "Борщ украинский", "price": 500, "category": "Первые блюда", "image": "borsch.jpg"},
+            {"title": "Суп куриный с лапшой", "price": 450, "category": "Первые блюда", "image": "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=500"},
+            {"title": "Борщ украинский", "price": 500, "category": "Первые блюда", "image": "https://images.unsplash.com/photo-1594998893017-36147fc4e0ba?w=500"},
             
             # Вторые блюда
-            {"title": "Плов узбекский", "price": 650, "category": "Вторые блюда", "image": "plov.jpg"},
-            {"title": "Котлета с пюре", "price": 600, "category": "Вторые блюда", "image": "cutlet.jpg"},
+            {"title": "Плов узбекский", "price": 650, "category": "Вторые блюда", "image": "https://images.unsplash.com/photo-1633964913295-ceb43826e7c9?w=500"},
+            {"title": "Котлета с пюре", "price": 600, "category": "Вторые блюда", "image": "https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?w=500"},
             
             # Выпечка
-            {"title": "Самса с мясом", "price": 250, "category": "Выпечка", "image": "samsa.jpg"},
-            {"title": "Пирожок с картошкой", "price": 180, "category": "Выпечка", "image": "pie.jpg"},
+            {"title": "Самса с мясом", "price": 250, "category": "Выпечка", "image": "https://images.unsplash.com/photo-1626803775151-61d756612f77?w=500"},
+            {"title": "Пирожок с картошкой", "price": 180, "category": "Выпечка", "image": "https://images.unsplash.com/photo-1608198093002-ad4e005484ec?w=500"},
             
             # Напитки
-            {"title": "Чай черный", "price": 100, "category": "Напитки", "image": "tea.jpg"},
-            {"title": "Компот из сухофруктов", "price": 150, "category": "Напитки", "image": "compot.jpg"}
+            {"title": "Чай черный", "price": 100, "category": "Напитки", "image": "https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=500"},
+            {"title": "Компот из сухофруктов", "price": 150, "category": "Напитки", "image": "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=500"}
         ]
         
         for item in default_dishes:
@@ -88,11 +88,37 @@ def create_dish():
         title=data.get('title'),
         price=data.get('price'),
         category=data.get('category'),
-        image=data.get('image', 'default.jpg')
+        image=data.get('image', 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500')
     )
     db.session.add(new_dish)
     db.session.commit()
     return jsonify({"success": True, "id": new_dish.id}), 200
+
+# API для редактирования существующего блюда (кнопка "Изменить" в админке)
+@app.route('/api/dishes/<int:dish_id>', methods=['PUT', 'PATCH'])
+def update_dish(dish_id):
+    dish = DishModel.query.get_or_404(dish_id)
+    data = request.get_json()
+    
+    if 'title' in data:
+        dish.title = data['title']
+    if 'price' in data:
+        dish.price = data['price']
+    if 'category' in data:
+        dish.category = data['category']
+    if 'image' in data:
+        dish.image = data['image']
+        
+    db.session.commit()
+    return jsonify({"success": True}), 200
+
+# API для удаления блюда (кнопка "Удалить" в админке)
+@app.route('/api/dishes/<int:dish_id>', methods=['DELETE'])
+def delete_dish(dish_id):
+    dish = DishModel.query.get_or_404(dish_id)
+    db.session.delete(dish)
+    db.session.commit()
+    return jsonify({"success": True}), 200
 
 if __name__ == '__main__':
     app.run(debug=True)
