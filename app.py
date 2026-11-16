@@ -68,6 +68,11 @@ def index():
 def admin_panel():
     return render_template('admin.html')
 
+# Страница кассы / кухни
+@app.route('/cashier')
+def cashier_panel():
+    return render_template('cashier.html')
+
 # API для получения списка блюд (используется в автотестах pytest)
 @app.route('/api/dishes', methods=['GET'])
 def get_dishes():
