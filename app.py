@@ -24,6 +24,19 @@ class DishModel(db.Model):
     category = db.Column(db.String(50), nullable=False) # Первые блюда, Вторые блюда, Выпечка, Напитки
     image = db.Column(db.String(300), nullable=False)
 
+# Модель заказа
+class OrderModel(db.Model):
+    __tablename__ = 'orders'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    student_name = db.Column(db.String(100), nullable=False)
+    group_id = db.Column(db.String(50), nullable=False)
+    pickup_time = db.Column(db.String(100), nullable=False)
+    payment_method = db.Column(db.String(50), nullable=False)
+    total_price = db.Column(db.Integer, nullable=False)
+    status = db.Column(db.String(50), default='Новый')
+    items = db.Column(db.Text, nullable=False)
+
 # Создание таблиц и заполнение стартового меню при первом запуске
 with app.app_context():
     db.create_all()
@@ -73,7 +86,7 @@ def admin_panel():
 def cashier_panel():
     return render_template('cashier.html')
 
-# API для получения списка блюд (используется в автотестах pytest)
+# API для получения списка блюд
 @app.route('/api/dishes', methods=['GET'])
 def get_dishes():
     dishes = DishModel.query.all()
@@ -99,7 +112,7 @@ def create_dish():
     db.session.commit()
     return jsonify({"success": True, "id": new_dish.id}), 200
 
-# API для редактирования существующего блюда (кнопка "Изменить" в админке)
+# API для редактирования блюда
 @app.route('/api/dishes/<int:dish_id>', methods=['PUT', 'PATCH'])
 def update_dish(dish_id):
     dish = DishModel.query.get_or_404(dish_id)
@@ -117,13 +130,29 @@ def update_dish(dish_id):
     db.session.commit()
     return jsonify({"success": True}), 200
 
-# API для удаления блюда (кнопка "Удалить" в админке)
+# API для удаления блюда
 @app.route('/api/dishes/<int:dish_id>', methods=['DELETE'])
 def delete_dish(dish_id):
     dish = DishModel.query.get_or_404(dish_id)
     db.session.delete(dish)
     db.session.commit()
     return jsonify({"success": True}), 200
+
+# API для оформления заказа из корзины
+@app.route('/api/orders', methods=['POST'])
+def create_order():
+    data = request.get_json()
+    new_order = OrderModel(
+        student_name=data.get('student_name'),
+        group_id=data.get('group_id'),
+        pickup_time=data.get('pickup_time'),
+        payment_method=data.get('payment_method'),
+        total_price=data.get('total_price', 0),
+        items=str(data.get('items', ''))
+    )
+    db.session.add(new_order)
+    db.session.commit()
+    return jsonify({"success": True, "order_id": new_order.id}), 200
 
 if __name__ == '__main__':
     app.run(debug=True)
