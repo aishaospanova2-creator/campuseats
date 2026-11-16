@@ -2,132 +2,155 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>CampusEats — Касса / Кухня</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusEats — Панель кассы и кухни</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 min-h-screen text-gray-800 pb-16">
 
-    <header class="bg-gray-900 text-white shadow-md sticky top-0 z-50">
+    <!-- Навигационная панель -->
+    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <span class="text-2xl">🛎️</span>
-                <h1 class="text-xl font-black tracking-wide text-orange-400">Панель кассы и кухни</h1>
+            <div class="flex items-center space-x-3">
+                <div class="bg-orange-500 text-white p-2 rounded-lg font-bold text-lg">🔔</div>
+                <h1 class="text-xl font-bold">Панель кассы и кухни</h1>
             </div>
-            <div class="flex items-center gap-4 text-sm font-bold">
-                <a href="/" class="text-gray-300 hover:underline">На сайт ↗</a>
-                <a href="/admin" class="text-gray-300 hover:underline">Админка ↗</a>
+            <div class="flex space-x-4">
+                <a href="/" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition">На сайт ↗</a>
+                <a href="/admin" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition">Админка ↗</a>
             </div>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-6 py-8">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            <!-- Колонка 1: Готовится -->
-            <div class="bg-orange-50/50 border border-orange-100 rounded-3xl p-5 space-y-4">
-                <div class="flex justify-between items-center">
-                    <h2 class="font-extrabold text-orange-800 flex items-center gap-2">⏳ Готовятся</h2>
-                    <span id="count-cooking" class="text-xs bg-orange-200 text-orange-800 font-bold px-2.5 py-1 rounded-full">0</span>
-                </div>
-                <div id="col-cooking" class="space-y-4"></div>
+    <!-- Основная канбан-доска -->
+    <main class="max-w-7xl mx-auto px-6 mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- Колонка 1: Готовятся -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col h-[75vh]">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
+                <h2 class="font-bold text-gray-800 flex items-center gap-2">
+                    ⏳ Готовятся
+                </h2>
+                <span id="count-preparing" class="bg-orange-100 text-orange-700 text-xs font-bold px-2.5 py-1 rounded-full">0</span>
             </div>
-
-            <!-- Колонка 2: Готов -->
-            <div class="bg-blue-50/50 border border-blue-100 rounded-3xl p-5 space-y-4">
-                <div class="flex justify-between items-center">
-                    <h2 class="font-extrabold text-blue-800 flex items-center gap-2">✅ Готовы к выдаче</h2>
-                    <span id="count-ready" class="text-xs bg-blue-200 text-blue-800 font-bold px-2.5 py-1 rounded-full">0</span>
-                </div>
-                <div id="col-ready" class="space-y-4"></div>
+            <div id="col-preparing" class="space-y-4 overflow-y-auto flex-1 pr-1">
+                <p class="text-sm text-gray-400 text-center py-4">Нет активных заказов</p>
             </div>
-
-            <!-- Колонка 3: Выдан -->
-            <div class="bg-green-50/50 border border-green-100 rounded-3xl p-5 space-y-4">
-                <div class="flex justify-between items-center">
-                    <h2 class="font-extrabold text-green-800 flex items-center gap-2">🎉 Выданные</h2>
-                    <span id="count-done" class="text-xs bg-green-200 text-green-800 font-bold px-2.5 py-1 rounded-full">0</span>
-                </div>
-                <div id="col-done" class="space-y-4"></div>
-            </div>
-
         </div>
+
+        <!-- Колонка 2: Готовы к выдаче -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col h-[75vh]">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
+                <h2 class="font-bold text-gray-800 flex items-center gap-2">
+                    ✅ Готовы к выдаче
+                </h2>
+                <span id="count-ready" class="bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full">0</span>
+            </div>
+            <div id="col-ready" class="space-y-4 overflow-y-auto flex-1 pr-1">
+                <p class="text-sm text-gray-400 text-center py-4">Нет готовых заказов</p>
+            </div>
+        </div>
+
+        <!-- Колонка 3: Выданные -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col h-[75vh]">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
+                <h2 class="font-bold text-gray-800 flex items-center gap-2">
+                    🎉 Выданные
+                </h2>
+                <span id="count-completed" class="bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-full">0</span>
+            </div>
+            <div id="col-completed" class="space-y-4 overflow-y-auto flex-1 pr-1">
+                <p class="text-sm text-gray-400 text-center py-4">Нет выданных заказов</p>
+            </div>
+        </div>
+
     </main>
 
+    <!-- Скрипт загрузки и отображения заказов -->
     <script>
         async function loadOrders() {
-            const res = await fetch('/api/orders');
-            const orders = await res.json();
+            try {
+                const response = await fetch('/api/orders');
+                const orders = await response.json();
+                renderKanban(orders);
+            } catch (error) {
+                console.error('Ошибка загрузки заказов:', error);
+            }
+        }
 
-            let cookingHtml = '';
-            let readyHtml = '';
-            let doneHtml = '';
+        function renderKanban(orders) {
+            const prepCol = document.getElementById('col-preparing');
+            const readyCol = document.getElementById('col-ready');
+            const compCol = document.getElementById('col-completed');
 
-            let cCount = 0, rCount = 0, dCount = 0;
+            prepCol.innerHTML = '';
+            readyCol.innerHTML = '';
+            compCol.innerHTML = '';
 
-            orders.forEach(o => {
-                let itemsList = o.items.map(i => `<li class="text-xs text-gray-600">• ${i.title} (${i.price} ₸)</li>`).join('');
-                let totalPrice = o.items.reduce((sum, i) => sum + i.price, 0);
+            let prepCount = 0;
+            let readyCount = 0;
+            let compCount = 0;
 
-                let card = `
-                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-200 space-y-3">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <span class="text-xs font-bold text-orange-600">Заказ #${o.id}</span>
-                                <h3 class="font-bold text-gray-900 text-sm">${o.student_name} (${o.student_id})</h3>
-                            </div>
-                            <span class="text-xs font-bold bg-gray-100 text-gray-700 px-2 py-1 rounded-lg">${totalPrice} ₸</span>
-                        </div>
-                        <p class="text-xs text-gray-500">🕒 <b>Время:</b> ${o.pickup_time}</p>
-                        <p class="text-xs text-gray-500">💳 <b>Оплата:</b> ${o.payment_method}</p>
-                        <ul class="border-t border-gray-100 pt-2 space-y-1">${itemsList}</ul>
-                        
-                        <div class="border-t border-gray-100 pt-3 flex gap-2">
-                            ${o.status === 'Готовится' ? `
-                                <button onclick="setStatus(${o.id}, 'Готов')" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded-xl text-xs transition cursor-pointer">Готов ➔</button>
-                            ` : ''}
-                            ${o.status === 'Готов' ? `
-                                <button onclick="setStatus(${o.id}, 'Выдан')" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2 rounded-xl text-xs transition cursor-pointer">Выдан 🎉</button>
-                            ` : ''}
-                            <button onclick="deleteOrder(${o.id})" class="bg-red-50 hover:bg-red-100 text-red-600 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer" title="Удалить">🗑️</button>
-                        </div>
+            if (orders.length === 0) {
+                prepCol.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">Нет активных заказов</p>';
+                readyCol.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">Нет готовых заказов</p>';
+                compCol.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">Нет выданных заказов</p>';
+                
+                document.getElementById('count-preparing').innerText = '0';
+                document.getElementById('count-ready').innerText = '0';
+                document.getElementById('count-completed').innerText = '0';
+                return;
+            }
+
+            orders.forEach(order => {
+                let itemsList = [];
+                try {
+                    itemsList = JSON.parse(order.items);
+                } catch (e) {
+                    itemsList = [{ title: order.items, price: order.total_price }];
+                }
+
+                const card = document.createElement('div');
+                card.className = 'bg-gray-50 border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow transition';
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="font-bold text-gray-900">Заказ #${order.id}</span>
+                        <span class="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-md font-semibold">${order.total_price} ₸</span>
+                    </div>
+                    <div class="text-xs text-gray-600 mb-2 space-y-0.5">
+                        <p><b>Студент:</b> ${order.student_name || 'Аноним'}</p>
+                        <p><b>Группа:</b> ${order.group_id || 'Не указана'}</p>
+                        <p><b>Время:</b> ${order.pickup_time || 'Ближайшее'}</p>
+                        <p><b>Оплата:</b> ${order.payment_method || 'Наличные'}</p>
+                    </div>
+                    <div class="border-t border-gray-200 pt-2 mt-2">
+                        <p class="text-xs font-bold text-gray-700 mb-1">Состав:</p>
+                        <ul class="text-xs text-gray-600 space-y-1">
+                            ${itemsList.map(i => `<li>• ${i.title} (${i.price} ₸)</li>`).join('')}
+                        </ul>
                     </div>
                 `;
 
-                if (o.status === 'Готовится') {
-                    cookingHtml += card;
-                    cCount++;
-                } else if (o.status === 'Готов') {
-                    readyHtml += card;
-                    rCount++;
+                const status = order.status || 'Новый';
+                if (status === 'Новый' || status === 'Готовятся') {
+                    prepCount++;
+                    prepCol.appendChild(card);
+                } else if (status === 'Готов к выдаче') {
+                    readyCount++;
+                    readyCol.appendChild(card);
                 } else {
-                    doneHtml += card;
-                    dCount++;
+                    compCount++;
+                    compCol.appendChild(card);
                 }
             });
 
-            document.getElementById('col-cooking').innerHTML = cookingHtml || '<p class="text-xs text-gray-400 text-center py-4">Нет заказов</p>';
-            document.getElementById('col-ready').innerHTML = readyHtml || '<p class="text-xs text-gray-400 text-center py-4">Нет готовых</p>';
-            document.getElementById('col-done').innerHTML = doneHtml || '<p class="text-xs text-gray-400 text-center py-4">Нет выданных</p>';
+            document.getElementById('count-preparing').innerText = prepCount;
+            document.getElementById('count-ready').innerText = readyCount;
+            document.getElementById('count-completed').innerText = compCount;
 
-            document.getElementById('count-cooking').innerText = cCount;
-            document.getElementById('count-ready').innerText = rCount;
-            document.getElementById('count-done').innerText = dCount;
-        }
-
-        async function setStatus(id, status) {
-            await fetch(`/api/orders/${id}/status`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status })
-            });
-            loadOrders();
-        }
-
-        async function deleteOrder(id) {
-            if (confirm('Удалить этот заказ?')) {
-                await fetch(`/api/orders/${id}`, { method: 'DELETE' });
-                loadOrders();
-            }
+            if (prepCount === 0) prepCol.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">Нет активных заказов</p>';
+            if (readyCount === 0) readyCol.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">Нет готовых заказов</p>';
+            if (compCount === 0) compCol.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">Нет выданных заказов</p>';
         }
 
         // Автообновление каждые 3 секунды
