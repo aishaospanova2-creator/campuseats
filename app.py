@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 
-# Получаем ссылку на базу из Render или используем SQLite локально для тестов
+# Настройка подключения к базе данных (PostgreSQL на Render или SQLite для локальной разработки)
 database_url = os.environ.get('DATABASE_URL')
 if database_url and database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
@@ -62,6 +62,11 @@ with app.app_context():
 def index():
     dishes = DishModel.query.all()
     return render_template('index.html', dishes=dishes)
+
+# Страница панели администратора
+@app.route('/admin')
+def admin_panel():
+    return render_template('admin.html')
 
 # API для получения списка блюд (используется в автотестах pytest)
 @app.route('/api/dishes', methods=['GET'])
