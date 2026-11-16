@@ -24,18 +24,18 @@ class DishModel(db.Model):
     category = db.Column(db.String(50), nullable=False) # Первые блюда, Вторые блюда, Выпечка, Напитки
     image = db.Column(db.String(300), nullable=False)
 
-# Модель заказа
+# Модель заказа с безопасными nullable полями
 class OrderModel(db.Model):
     __tablename__ = 'orders'
     
     id = db.Column(db.Integer, primary_key=True)
-    student_name = db.Column(db.String(100), nullable=False)
-    group_id = db.Column(db.String(50), nullable=False)
-    pickup_time = db.Column(db.String(100), nullable=False)
-    payment_method = db.Column(db.String(50), nullable=False)
-    total_price = db.Column(db.Integer, nullable=False)
+    student_name = db.Column(db.String(100), nullable=True)
+    group_id = db.Column(db.String(50), nullable=True)
+    pickup_time = db.Column(db.String(100), nullable=True)
+    payment_method = db.Column(db.String(50), nullable=True)
+    total_price = db.Column(db.Integer, nullable=True, default=0)
     status = db.Column(db.String(50), default='Новый')
-    items = db.Column(db.Text, nullable=False)
+    items = db.Column(db.Text, nullable=True)
 
 # Создание таблиц и заполнение стартового меню при первом запуске
 with app.app_context():
@@ -101,7 +101,7 @@ def get_dishes():
 # API для добавления нового блюда (админка)
 @app.route('/api/dishes', methods=['POST'])
 def create_dish():
-    data = request.get_json()
+    data = request.get_json() or {}
     new_dish = DishModel(
         title=data.get('title'),
         price=data.get('price'),
@@ -116,7 +116,7 @@ def create_dish():
 @app.route('/api/dishes/<int:dish_id>', methods=['PUT', 'PATCH'])
 def update_dish(dish_id):
     dish = DishModel.query.get_or_404(dish_id)
-    data = request.get_json()
+    data = request.get_json() or {}
     
     if 'title' in data:
         dish.title = data['title']
@@ -138,21 +138,39 @@ def delete_dish(dish_id):
     db.session.commit()
     return jsonify({"success": True}), 200
 
-# API для оформления заказа из корзины
-@app.route('/api/orders', methods=['POST'])
-def create_order():
-    data = request.get_json()
-    new_order = OrderModel(
-        student_name=data.get('student_name'),
-        group_id=data.get('group_id'),
-        pickup_time=data.get('pickup_time'),
-        payment_method=data.get('payment_method'),
-        total_price=data.get('total_price', 0),
-        items=str(data.get('items', ''))
-    )
-    db.session.add(new_order)
-    db.session.commit()
-    return jsonify({"success": True, "order_id": new_order.id}), 200
+# Универсальный API для работы с заказами (GET для кассы, POST для оформления)
+@app.route('/api/orders', methods=['GET', 'POST'])
+def handle_orders():
+    if request.method == 'GET':
+        orders = OrderModel.query.all()
+        return jsonify([{
+            "id": o.id,
+            "student_name": o.student_name,
+            "group_id": o.group_id,
+            "pickup_time": o.pickup_time,
+            "payment_method": o.payment_method,
+            "total_price": o.total_price,
+            "status": o.status,
+            "items": o.items
+        } for o in orders])
+    
+    # POST запрос (сохранение заказа из корзины)
+    try:
+        data = request.get_json() or {}
+        new_order = OrderModel(
+            student_name=data.get('student_name') or 'Аноним',
+            group_id=data.get('group_id') or 'Не указана',
+            pickup_time=data.get('pickup_time') or 'Ближайшее время',
+            payment_method=data.get('payment_method') or 'Наличные',
+            total_price=int(data.get('total_price') or 0),
+            items=str(data.get('items', ''))
+        )
+        db.session.add(new_order)
+        db.session.commit()
+        return jsonify({"success": True, "order_id": new_order.id}), 200
+    except Exception as e:
+        print(f"Error creating order: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
