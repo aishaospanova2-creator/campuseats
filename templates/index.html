@@ -3,248 +3,543 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CampusEats — Столовая колледжа</title>
+    <title>CampusEats — Меню столовой</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 min-h-screen text-gray-800 pb-16">
+<body class="bg-slate-100 min-h-screen text-slate-800 pb-16">
 
-    <!-- Навигационная панель -->
-    <header class="bg-white shadow-sm sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <div class="bg-orange-500 text-white p-2 rounded-lg font-bold text-lg">🍽️</div>
-                <h1 class="text-xl font-bold text-gray-900">CampusEats</h1>
+    <!-- Всплывающее уведомление (toast) -->
+    <div id="toast-box" class="fixed bottom-5 right-5 z-[60] hidden max-w-sm bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl border border-slate-700 text-sm font-medium"></div>
+
+    <!-- Шапка -->
+    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-wrap gap-3 justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-orange-500 text-white w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg shadow">🍽️</div>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-bold leading-tight">CampusEats</h1>
+                    <p class="text-xs text-slate-400">Столовая колледжа • Быстрый предзаказ</p>
+                </div>
             </div>
-            <div class="flex space-x-4">
-                <a href="/cashier" class="bg-blue-50 text-blue-600 hover:bg-blue-100 px-4 py-2 rounded-lg font-medium text-sm transition">Касса ↗</a>
-                <a href="/admin" class="bg-gray-100 text-gray-700 hover:bg-gray-200 px-4 py-2 rounded-lg font-medium text-sm transition">Админка ↗</a>
+
+            <div class="flex items-center gap-2 sm:gap-3">
+                <a href="/cashier" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white px-3.5 py-2 rounded-xl font-medium text-xs sm:text-sm transition">
+                    Касса ↗
+                </a>
+                <a href="/admin" class="bg-orange-500 hover:bg-orange-600 text-white px-3.5 py-2 rounded-xl font-medium text-xs sm:text-sm transition shadow">
+                    Админка ↗
+                </a>
             </div>
         </div>
     </header>
 
     <!-- Основной контент -->
-    <main class="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        <!-- Левая колонка: Меню по категориям -->
-        <div class="lg:col-span-2">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-extrabold text-gray-900">Меню столовой</h2>
-                <span id="dishes-count" class="text-xs bg-orange-100 text-orange-700 font-bold px-3 py-1 rounded-full">Загрузка...</span>
-            </div>
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 mt-7 grid grid-cols-1 lg:grid-cols-12 gap-7 items-start">
 
-            <!-- Контейнер для категорий и блюд (заполняется через JS из API) -->
-            <div id="menu-categories-container" class="space-y-8">
-                <p class="text-gray-500">Загрузка меню...</p>
-            </div>
-        </div>
+        <!-- Левая колонка: Меню -->
+        <section class="lg:col-span-8 space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-slate-900">Меню столовой</h2>
+                    <p class="text-xs sm:text-sm text-slate-500">Выберите блюда и оформите заказ к перемене</p>
+                </div>
 
-        <!-- Правая колонка: Корзина и оформление заказа -->
-        <div class="bg-white rounded-3xl shadow-xl border border-gray-100 p-6 sticky top-24 flex flex-col h-fit">
-            <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                🛒 Ваша корзина
-            </h2>
-            
-            <!-- Список товаров в корзине -->
-            <div id="cart-items" class="divide-y divide-gray-100 max-h-60 overflow-y-auto mb-4">
-                <p class="text-sm text-gray-400 py-2">Корзина пуста</p>
-            </div>
-
-            <div class="border-t border-gray-100 pt-4 mb-6">
-                <div class="flex justify-between items-center text-lg font-bold">
-                    <span>Итого к оплате:</span>
-                    <span id="cart-total" class="text-orange-600">0 ₸</span>
+                <!-- Фильтр категорий -->
+                <div id="category-filters" class="flex flex-wrap gap-1.5 bg-white p-1.5 rounded-2xl border border-slate-200/80 shadow-xs">
+                    <button type="button" data-category="Все" onclick="setCategory('Все')"
+                            class="cat-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-orange-500 text-white transition">
+                        Все
+                    </button>
+                    <button type="button" data-category="Первые блюда" onclick="setCategory('Первые блюда')"
+                            class="cat-btn px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
+                        Первые блюда
+                    </button>
+                    <button type="button" data-category="Вторые блюда" onclick="setCategory('Вторые блюда')"
+                            class="cat-btn px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
+                        Вторые блюда
+                    </button>
+                    <button type="button" data-category="Выпечка" onclick="setCategory('Выпечка')"
+                            class="cat-btn px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
+                        Выпечка
+                    </button>
+                    <button type="button" data-category="Напитки" onclick="setCategory('Напитки')"
+                            class="cat-btn px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
+                        Напитки
+                    </button>
                 </div>
             </div>
 
-            <!-- Форма заказа -->
-            <form onsubmit="submitOrder(event)" class="space-y-4">
+            <div id="menu-container" class="space-y-7">
+                <p class="text-sm text-slate-400 py-8 text-center">Загрузка меню...</p>
+            </div>
+        </section>
+
+        <!-- Правая колонка: Корзина и оформление -->
+        <aside class="lg:col-span-4 bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 lg:sticky lg:top-24">
+            <div class="flex items-center justify-between pb-3.5 border-b border-slate-100">
+                <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <span>🛒</span> Ваша корзина
+                </h2>
+                <span id="cart-count-badge" class="bg-orange-100 text-orange-700 text-xs font-bold px-2.5 py-1 rounded-full">
+                    0 шт.
+                </span>
+            </div>
+
+            <div id="cart-items" class="my-4 space-y-2.5 max-h-60 overflow-y-auto pr-1">
+                <p class="text-sm text-slate-400 text-center py-6">Корзина пока пуста</p>
+            </div>
+
+            <div class="flex items-center justify-between py-3 border-t border-b border-slate-100 mb-4">
+                <span class="text-sm font-semibold text-slate-600">Итого к оплате:</span>
+                <span id="cart-total" class="text-xl font-extrabold text-slate-900">0 ₸</span>
+            </div>
+
+            <form id="order-form" onsubmit="handleOrderSubmit(event)" class="space-y-3.5">
                 <div>
-                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">ФИО / Студент</label>
-                    <input type="text" id="student-name" required placeholder="Введите ваше имя" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-orange-500">
+                    <label for="student-name" class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                        ФИО / Студент
+                    </label>
+                    <input type="text" id="student-name" required placeholder="Например: Аиша"
+                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Номер группы / ID</label>
-                    <input type="text" id="student-id" required placeholder="Например: П-25-756" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-orange-500">
+                    <label for="group-id" class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                        Номер группы / ID
+                    </label>
+                    <input type="text" id="group-id" required placeholder="Например: П-25-756"
+                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Время самовывоза</label>
-                    <select id="pickup-time" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:border-orange-500">
-                        <option>Большая перемена (11:40 - 12:10)</option>
-                        <option>Малая перемена (10:00 - 10:10)</option>
-                        <option>После пар (13:50)</option>
+                    <label for="pickup-time" class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                        Время самовывоза
+                    </label>
+                    <select id="pickup-time"
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm">
+                        <option value="Ближайшее время">Ближайшее время</option>
+                        <option value="Малая перемена (10:15 - 10:25)">Малая перемена (10:15 - 10:25)</option>
+                        <option value="Большая перемена (11:40 - 12:10)">Большая перемена (11:40 - 12:10)</option>
+                        <option value="После пар (13:50)">После пар (13:50)</option>
                     </select>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Способ оплаты</label>
-                    <select id="payment-method" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:border-orange-500">
-                        <option>Kaspi QR (Оплата по QR)</option>
-                        <option>Наличными на кассе</option>
+                    <label for="payment-method" class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                        Способ оплаты
+                    </label>
+                    <select id="payment-method"
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm">
+                        <option value="Kaspi QR (Оплата по QR)">Kaspi QR (Оплата по QR)</option>
+                        <option value="Наличные">Наличные</option>
                     </select>
                 </div>
 
-                <button type="submit" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-orange-500/20">
+                <button type="submit" id="submit-order-btn"
+                        class="w-full mt-2 bg-orange-500 hover:bg-orange-600 disabled:bg-slate-300 text-white font-bold py-3 rounded-xl shadow transition text-sm">
                     Оформить заказ
                 </button>
             </form>
-        </div>
-
+        </aside>
     </main>
 
-    <!-- Скрипты загрузки меню и отправки заказов -->
-    <script>
-        let cart = [];
-        let allDishes = [];
+    <!-- Модальное окно оплаты через Kaspi QR (демо) -->
+    <div id="kaspi-qr-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
+        <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
+            <div class="bg-rose-600 text-white px-5 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <span class="bg-white text-rose-600 font-extrabold text-sm px-2.5 py-1 rounded-lg">Kaspi</span>
+                    <div>
+                        <h3 class="font-bold text-base leading-tight">Оплата по Kaspi QR</h3>
+                        <p class="text-xs text-rose-100">Демо-окно оплаты заказа</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeKaspiModal()" class="text-rose-100 hover:text-white text-2xl leading-none px-1">&times;</button>
+            </div>
 
-        // Загружаем блюда с бэкенда при открытии страницы
-        async function loadMenu() {
+            <div class="p-5 text-center space-y-4">
+                <div class="bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-4">
+                    <p class="text-xs text-slate-500">Сумма к переводу</p>
+                    <p id="kaspi-modal-amount" class="text-2xl font-extrabold text-slate-900">0 ₸</p>
+                </div>
+
+                <div class="bg-white border-2 border-dashed border-rose-200 rounded-2xl p-3 inline-block">
+                    <canvas id="kaspi-demo-qr-canvas" width="180" height="180" class="mx-auto block rounded-lg"></canvas>
+                    <p class="text-[11px] text-slate-400 mt-1.5">Тестовый QR-код для демонстрации</p>
+                </div>
+
+                <p class="text-xs text-slate-600 leading-relaxed">
+                    Переведите указанную сумму и нажмите кнопку ниже, чтобы подтвердить оплату и отправить заказ в работу.
+                </p>
+
+                <div class="flex gap-2.5 pt-1">
+                    <button type="button" onclick="closeKaspiModal()"
+                            class="w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm py-2.5 rounded-xl transition">
+                        Отмена
+                    </button>
+                    <button type="button" id="kaspi-confirm-btn" onclick="confirmKaspiPayment()"
+                            class="w-2/3 bg-rose-600 hover:bg-rose-700 text-white font-semibold text-sm py-2.5 rounded-xl shadow transition">
+                        Я оплатил ✓
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500';
+        const CATEGORY_ORDER = ['Первые блюда', 'Вторые блюда', 'Выпечка', 'Напитки'];
+
+        let allDishes = [];
+        let activeCategory = 'Все';
+        let cart = [];
+        let pendingOrderPayload = null;
+        let toastTimeout = null;
+
+        function showToast(message, isError = false) {
+            const box = document.getElementById('toast-box');
+            box.textContent = message;
+            box.className = `fixed bottom-5 right-5 z-[60] max-w-sm px-4 py-3 rounded-2xl shadow-xl border text-sm font-medium transition ${
+                isError
+                    ? 'bg-rose-950 text-rose-100 border-rose-700'
+                    : 'bg-slate-900 text-white border-slate-700'
+            }`;
+            box.classList.remove('hidden');
+
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                box.classList.add('hidden');
+            }, 3500);
+        }
+
+        function escapeHtml(text) {
+            return String(text ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function setCategory(category) {
+            activeCategory = category;
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                const isActive = btn.dataset.category === category;
+                btn.className = isActive
+                    ? 'cat-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-orange-500 text-white transition shadow-xs'
+                    : 'cat-btn px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition';
+            });
+            renderMenu();
+        }
+
+        async function loadDishes() {
             try {
                 const res = await fetch('/api/dishes');
-                allDishes = await res.json();
-                renderMenu(allDishes);
+                const data = await res.json();
+                if (!res.ok || !Array.isArray(data)) {
+                    throw new Error(data.error || 'Не удалось загрузить меню');
+                }
+                allDishes = data;
+                renderMenu();
             } catch (err) {
-                console.error('Ошибка загрузки меню:', err);
-                document.getElementById('menu-categories-container').innerHTML = '<p class="text-red-500">Не удалось загрузить меню.</p>';
+                document.getElementById('menu-container').innerHTML = `
+                    <div class="bg-white border border-rose-200 text-rose-700 rounded-2xl p-6 text-sm">
+                        Ошибка загрузки меню: ${escapeHtml(err.message)}
+                    </div>
+                `;
             }
         }
 
-        // Отрисовка меню по категориям
-        function renderMenu(dishes) {
-            const container = document.getElementById('menu-categories-container');
-            const countEl = document.getElementById('dishes-count');
-            countEl.innerText = `Блюд: ${dishes.length}`;
-            
-            if (dishes.length === 0) {
-                container.innerHTML = '<p class="text-gray-500">Меню пока пусто</p>';
+        function renderMenu() {
+            const container = document.getElementById('menu-container');
+            const filtered = activeCategory === 'Все'
+                ? allDishes
+                : allDishes.filter(d => d.category === activeCategory);
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white border border-slate-200 rounded-2xl p-8 text-center text-sm text-slate-500">
+                        В этой категории пока нет блюд.
+                    </div>
+                `;
                 return;
             }
 
-            // Группируем по категориям
-            const categories = {};
-            dishes.forEach(dish => {
-                if (!categories[dish.category]) {
-                    categories[dish.category] = [];
-                }
-                categories[dish.category].push(dish);
+            const grouped = {};
+            filtered.forEach(dish => {
+                const cat = dish.category || 'Другое';
+                if (!grouped[cat]) grouped[cat] = [];
+                grouped[cat].push(dish);
             });
 
-            container.innerHTML = '';
+            const categoriesToRender = [
+                ...CATEGORY_ORDER.filter(c => grouped[c]),
+                ...Object.keys(grouped).filter(c => !CATEGORY_ORDER.includes(c))
+            ];
 
-            for (const [category, items] of Object.entries(categories)) {
-                const catDiv = document.createElement('div');
-                catDiv.innerHTML = `
-                    <h3 class="text-xl font-bold text-gray-800 mb-4 pb-2 border-b border-gray-200">${category}</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        ${items.map(dish => `
-                            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col justify-between hover:shadow-md transition">
-                                <img src="${dish.image}" alt="${dish.title}" class="w-full h-40 object-cover">
-                                <div class="p-4">
-                                    <h4 class="font-bold text-gray-900">${dish.title}</h4>
-                                    <div class="flex justify-between items-center mt-3">
-                                        <span class="font-bold text-orange-600">${dish.price} ₸</span>
-                                        <button onclick="addToCart(${dish.id}, '${dish.title.replace(/'/g, "\\'")}', ${dish.price})" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition">
+            container.innerHTML = categoriesToRender.map(cat => `
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800 mb-3.5 flex items-center gap-2">
+                        <span class="w-2 h-5 bg-orange-500 rounded-full inline-block"></span>
+                        ${escapeHtml(cat)}
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        ${grouped[cat].map(dish => `
+                            <article class="bg-white rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md transition overflow-hidden flex flex-col">
+                                <div class="h-40 w-full bg-slate-100 overflow-hidden">
+                                    <img src="${escapeHtml(dish.image || FALLBACK_IMAGE)}"
+                                         alt="${escapeHtml(dish.title)}"
+                                         onerror="this.onerror=null;this.src='${FALLBACK_IMAGE}';"
+                                         class="w-full h-full object-cover">
+                                </div>
+                                <div class="p-4 flex-1 flex flex-col justify-between gap-3">
+                                    <div>
+                                        <span class="text-[11px] font-semibold text-slate-400">${escapeHtml(dish.category || '')}</span>
+                                        <h4 class="font-bold text-slate-900 text-base leading-snug mt-0.5">${escapeHtml(dish.title)}</h4>
+                                    </div>
+                                    <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                                        <span class="text-base font-extrabold text-orange-600">${Number(dish.price || 0)} ₸</span>
+                                        <button type="button" onclick="addToCart(${Number(dish.id)})"
+                                                class="bg-orange-500 hover:bg-orange-600 active:scale-[0.98] text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-xs">
                                             Добавить
                                         </button>
                                     </div>
                                 </div>
-                            </div>
+                            </article>
                         `).join('')}
                     </div>
-                `;
-                container.appendChild(catDiv);
-            }
+                </div>
+            `).join('');
         }
 
-        function addToCart(id, title, price) {
-            cart.push({ id, title, price });
-            updateCartUI();
+        function addToCart(dishId) {
+            const dish = allDishes.find(d => Number(d.id) === Number(dishId));
+            if (!dish) return;
+
+            const existing = cart.find(item => Number(item.id) === Number(dish.id));
+            if (existing) {
+                existing.qty += 1;
+            } else {
+                cart.push({
+                    id: dish.id,
+                    title: dish.title,
+                    price: Number(dish.price || 0),
+                    qty: 1
+                });
+            }
+            renderCart();
+            showToast(`Добавлено: ${dish.title}`);
+        }
+
+        function changeQty(index, delta) {
+            const item = cart[index];
+            if (!item) return;
+            item.qty += delta;
+            if (item.qty <= 0) {
+                cart.splice(index, 1);
+            }
+            renderCart();
         }
 
         function removeFromCart(index) {
             cart.splice(index, 1);
-            updateCartUI();
+            renderCart();
         }
 
-        function updateCartUI() {
-            const cartContainer = document.getElementById('cart-items');
-            const totalContainer = document.getElementById('cart-total');
-            if (!cartContainer || !totalContainer) return;
+        function getCartTotal() {
+            return cart.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.qty || 1), 0);
+        }
+
+        function getCartCount() {
+            return cart.reduce((sum, item) => sum + Number(item.qty || 1), 0);
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cart-items');
+            const totalEl = document.getElementById('cart-total');
+            const badgeEl = document.getElementById('cart-count-badge');
+
+            badgeEl.textContent = `${getCartCount()} шт.`;
+            totalEl.textContent = `${getCartTotal()} ₸`;
 
             if (cart.length === 0) {
-                cartContainer.innerHTML = '<p class="text-sm text-gray-400 py-2">Корзина пуста</p>';
-                totalContainer.innerText = '0 ₸';
+                container.innerHTML = '<p class="text-sm text-slate-400 text-center py-6">Корзина пока пуста</p>';
                 return;
             }
 
-            cartContainer.innerHTML = '';
-            let total = 0;
-
-            cart.forEach((item, index) => {
-                total += item.price;
-                const div = document.createElement('div');
-                div.className = 'flex justify-between items-center py-2 text-sm';
-                div.innerHTML = `
-                    <span>${item.title}</span>
-                    <div class="flex items-center space-x-2">
-                        <span class="font-medium">${item.price} ₸</span>
-                        <button type="button" onclick="removeFromCart(${index})" class="text-red-500 hover:text-red-700 font-bold px-1">×</button>
+            container.innerHTML = cart.map((item, idx) => `
+                <div class="flex items-center justify-between gap-2 bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-2">
+                    <div class="min-w-0">
+                        <p class="text-xs font-bold text-slate-800 truncate">${escapeHtml(item.title)}</p>
+                        <p class="text-[11px] text-slate-500">${Number(item.price) * Number(item.qty)} ₸</p>
                     </div>
-                `;
-                cartContainer.appendChild(div);
-            });
-
-            totalContainer.innerText = total + ' ₸';
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <button type="button" onclick="changeQty(${idx}, -1)"
+                                class="w-6 h-6 rounded-lg bg-white border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-100">-</button>
+                        <span class="text-xs font-bold w-5 text-center">${item.qty}</span>
+                        <button type="button" onclick="changeQty(${idx}, 1)"
+                                class="w-6 h-6 rounded-lg bg-white border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-100">+</button>
+                        <button type="button" onclick="removeFromCart(${idx})"
+                                class="text-slate-400 hover:text-rose-600 text-sm font-bold px-1" title="Удалить">&times;</button>
+                    </div>
+                </div>
+            `).join('');
         }
 
-        // Отправка заказа на сервер
-        async function submitOrder(event) {
-            event.preventDefault();
-            
-            if (cart.length === 0) {
-                alert('Добавьте хотя бы одно блюдо в корзину!');
-                return;
+        function buildFlattenedItems() {
+            const flat = [];
+            cart.forEach(item => {
+                for (let i = 0; i < item.qty; i++) {
+                    flat.push({ title: item.title, price: item.price });
+                }
+            });
+            return flat;
+        }
+
+        function drawDemoQrCode(textValue) {
+            const canvas = document.getElementById('kaspi-demo-qr-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const size = canvas.width;
+            const cells = 21;
+            const cellSize = Math.floor(size / cells);
+            const offset = Math.floor((size - cells * cellSize) / 2);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, size, size);
+
+            let hash = 2166136261;
+            for (let i = 0; i < textValue.length; i++) {
+                hash ^= textValue.charCodeAt(i);
+                hash = Math.imul(hash, 16777619);
             }
 
-            const student_name = document.getElementById('student-name').value;
-            const group_id = document.getElementById('student-id').value;
-            const pickup_time = document.getElementById('pickup-time').value;
-            const payment_method = document.getElementById('payment-method').value;
-            const total_price = cart.reduce((sum, item) => sum + item.price, 0);
+            function drawFinderPattern(gx, gy) {
+                ctx.fillStyle = '#0f172a';
+                ctx.fillRect(offset + gx * cellSize, offset + gy * cellSize, 7 * cellSize, 7 * cellSize);
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(offset + (gx + 1) * cellSize, offset + (gy + 1) * cellSize, 5 * cellSize, 5 * cellSize);
+                ctx.fillStyle = '#e11d48';
+                ctx.fillRect(offset + (gx + 2) * cellSize, offset + (gy + 2) * cellSize, 3 * cellSize, 3 * cellSize);
+            }
+
+            drawFinderPattern(0, 0);
+            drawFinderPattern(cells - 7, 0);
+            drawFinderPattern(0, cells - 7);
+
+            ctx.fillStyle = '#0f172a';
+            for (let r = 0; r < cells; r++) {
+                for (let c = 0; c < cells; c++) {
+                    const inTopLeft = r < 8 && c < 8;
+                    const inTopRight = r < 8 && c >= cells - 8;
+                    const inBottomLeft = r >= cells - 8 && c < 8;
+                    if (inTopLeft || inTopRight || inBottomLeft) continue;
+
+                    const bit = ((hash >>> ((r * cells + c) % 24)) ^ (r * 31 + c * 17)) & 1;
+                    if (bit) {
+                        ctx.fillRect(offset + c * cellSize, offset + r * cellSize, cellSize - 1, cellSize - 1);
+                    }
+                }
+            }
+        }
+
+        function openKaspiQrModal(payload) {
+            pendingOrderPayload = payload;
+            document.getElementById('kaspi-modal-amount').textContent = `${Number(payload.total_price || 0)} ₸`;
+            drawDemoQrCode(`CampusEats|${payload.total_price}|${payload.student_name}|${payload.group_id}`);
+
+            const modal = document.getElementById('kaspi-qr-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeKaspiModal() {
+            const modal = document.getElementById('kaspi-qr-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            pendingOrderPayload = null;
+        }
+
+        async function confirmKaspiPayment() {
+            if (!pendingOrderPayload) return;
+            const btn = document.getElementById('kaspi-confirm-btn');
+            btn.disabled = true;
+            btn.textContent = 'Отправка...';
+
+            try {
+                await sendOrderToServer(pendingOrderPayload);
+                closeKaspiModal();
+            } catch (err) {
+                showToast('Ошибка при оформлении заказа: ' + err.message, true);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Я оплатил ✓';
+            }
+        }
+
+        async function sendOrderToServer(payload) {
+            const submitBtn = document.getElementById('submit-order-btn');
+            submitBtn.disabled = true;
 
             try {
                 const res = await fetch('/api/orders', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        student_name,
-                        group_id,
-                        pickup_time,
-                        payment_method,
-                        total_price,
-                        items: JSON.stringify(cart)
-                    })
+                    body: JSON.stringify(payload)
                 });
-                
-                const result = await res.json();
-                if (result.success) {
-                    alert('Заказ успешно оформлен! Номер заказа: #' + result.order_id);
-                    cart = [];
-                    updateCartUI();
-                    document.getElementById('student-name').value = '';
-                    document.getElementById('student-id').value = '';
-                } else {
-                    alert('Ошибка при оформлении заказа: ' + (result.error || 'неизвестная ошибка'));
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    throw new Error(data.error || 'Не удалось оформить заказ');
                 }
-            } catch (error) {
-                console.error('Ошибка сети:', error);
-                alert('Не удалось отправить заказ на сервер.');
+
+                cart = [];
+                renderCart();
+                document.getElementById('order-form').reset();
+                showToast(`Заказ #${data.order_id} успешно оформлен!`);
+            } finally {
+                submitBtn.disabled = false;
             }
         }
 
-        // Запускаем загрузку меню при загрузке страницы
-        loadMenu();
+        async function handleOrderSubmit(event) {
+            event.preventDefault();
+
+            if (cart.length === 0) {
+                showToast('Добавьте хотя бы одно блюдо в корзину', true);
+                return;
+            }
+
+            const studentName = document.getElementById('student-name').value.trim();
+            const groupId = document.getElementById('group-id').value.trim();
+            const pickupTime = document.getElementById('pickup-time').value;
+            const paymentMethod = document.getElementById('payment-method').value;
+            const totalPrice = getCartTotal();
+
+            const payload = {
+                student_name: studentName || 'Аноним',
+                group_id: groupId || 'Не указана',
+                pickup_time: pickupTime,
+                payment_method: paymentMethod,
+                total_price: totalPrice,
+                items: buildFlattenedItems()
+            };
+
+            const isKaspiQr = paymentMethod.toLowerCase().includes('kaspi')
+                || paymentMethod.toLowerCase().includes('qr');
+
+            if (isKaspiQr) {
+                openKaspiQrModal(payload);
+                return;
+            }
+
+            try {
+                await sendOrderToServer(payload);
+            } catch (err) {
+                showToast('Ошибка при оформлении заказа: ' + err.message, true);
+            }
+        }
+
+        loadDishes();
+        renderCart();
     </script>
 </body>
 </html>

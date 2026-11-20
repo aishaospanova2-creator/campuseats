@@ -6,74 +6,138 @@
     <title>CampusEats — Панель кассы и кухни</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 min-h-screen text-gray-800 pb-16">
+<body class="bg-slate-100 min-h-screen text-slate-800 pb-14">
 
-    <!-- Навигационная панель -->
-    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <div class="bg-orange-500 text-white p-2 rounded-lg font-bold text-lg">🔔</div>
-                <h1 class="text-xl font-bold">Панель кассы и кухни (Просмотр)</h1>
-            </div>
-            <div class="flex items-center space-x-4">
-                <!-- Фильтр по датам -->
-                <div class="flex items-center space-x-2 bg-slate-800 px-3 py-1.5 rounded-lg text-sm">
-                    <span class="text-gray-300">Дата:</span>
-                    <input type="date" id="order-date-filter" onchange="loadOrders()" class="bg-slate-700 text-white px-2 py-1 rounded focus:outline-none">
+    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-wrap gap-3 justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-orange-500 text-white w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg shadow">🔔</div>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-bold leading-tight">Панель кассы и кухни</h1>
+                    <p class="text-xs text-slate-400">Просмотр заказов в реальном времени</p>
                 </div>
-                <a href="/" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition">На сайт ↗</a>
-                <a href="/admin" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition">Админка (Изменение статусов) ↗</a>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+                <div class="flex items-center gap-2 bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-xl text-xs sm:text-sm">
+                    <label for="order-date-filter" class="text-slate-300 font-medium">Дата:</label>
+                    <input type="date" id="order-date-filter" onchange="loadOrders()"
+                           class="bg-slate-700 text-white px-2 py-1 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    <button type="button" onclick="resetToToday()"
+                            class="text-orange-400 hover:text-orange-300 font-medium px-1.5 transition">
+                        Сегодня
+                    </button>
+                </div>
+
+                <a href="/" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white px-3.5 py-2 rounded-xl font-medium text-xs sm:text-sm transition">
+                    На сайт ↗
+                </a>
+                <a href="/admin" class="bg-orange-500 hover:bg-orange-600 text-white px-3.5 py-2 rounded-xl font-medium text-xs sm:text-sm transition shadow">
+                    Админка ↗
+                </a>
             </div>
         </div>
     </header>
 
-    <!-- Основная канбан-доска -->
-    <main class="max-w-7xl mx-auto px-6 mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-        
-        <!-- Колонка 1: Готовятся -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col h-[75vh]">
-            <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
-                <h2 class="font-bold text-gray-800 flex items-center gap-2">⏳ Готовятся</h2>
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 mt-7 grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 flex flex-col h-[76vh]">
+            <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
+                <h2 class="font-bold text-slate-800 flex items-center gap-2 text-base">
+                    <span>⏳</span> Готовятся
+                </h2>
                 <span id="count-preparing" class="bg-orange-100 text-orange-700 text-xs font-bold px-2.5 py-1 rounded-full">0</span>
             </div>
-            <div id="col-preparing" class="space-y-4 overflow-y-auto flex-1 pr-1">
-                <p class="text-sm text-gray-400 text-center py-4">Нет активных заказов</p>
+            <div id="col-preparing" class="space-y-3.5 overflow-y-auto flex-1 pr-1">
+                <p class="text-sm text-slate-400 text-center py-8">Загрузка...</p>
             </div>
-        </div>
+        </section>
 
-        <!-- Колонка 2: Готовы к выдаче -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col h-[75vh]">
-            <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
-                <h2 class="font-bold text-gray-800 flex items-center gap-2">✅ Готовы к выдаче</h2>
-                <span id="count-ready" class="bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full">0</span>
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 flex flex-col h-[76vh]">
+            <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
+                <h2 class="font-bold text-slate-800 flex items-center gap-2 text-base">
+                    <span>✅</span> Готовы к выдаче
+                </h2>
+                <span id="count-ready" class="bg-sky-100 text-sky-700 text-xs font-bold px-2.5 py-1 rounded-full">0</span>
             </div>
-            <div id="col-ready" class="space-y-4 overflow-y-auto flex-1 pr-1">
-                <p class="text-sm text-gray-400 text-center py-4">Нет готовых заказов</p>
+            <div id="col-ready" class="space-y-3.5 overflow-y-auto flex-1 pr-1">
+                <p class="text-sm text-slate-400 text-center py-8">Загрузка...</p>
             </div>
-        </div>
+        </section>
 
-        <!-- Колонка 3: Выданные -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col h-[75vh]">
-            <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
-                <h2 class="font-bold text-gray-800 flex items-center gap-2">🎉 Выданные</h2>
-                <span id="count-completed" class="bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-full">0</span>
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 flex flex-col h-[76vh]">
+            <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
+                <h2 class="font-bold text-slate-800 flex items-center gap-2 text-base">
+                    <span>🎉</span> Выданные
+                </h2>
+                <span id="count-completed" class="bg-emerald-100 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-full">0</span>
             </div>
-            <div id="col-completed" class="space-y-4 overflow-y-auto flex-1 pr-1">
-                <p class="text-sm text-gray-400 text-center py-4">Нет выданных заказов</p>
+            <div id="col-completed" class="space-y-3.5 overflow-y-auto flex-1 pr-1">
+                <p class="text-sm text-slate-400 text-center py-8">Загрузка...</p>
             </div>
-        </div>
+        </section>
 
     </main>
 
     <script>
-        // Устанавливаем текущую дату в инпут при загрузке
-        document.getElementById('order-date-filter').valueAsDate = new Date();
+        const dateInput = document.getElementById('order-date-filter');
+
+        function getTodayISO() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function resetToToday() {
+            dateInput.value = getTodayISO();
+            loadOrders();
+        }
+
+        function escapeHtml(text) {
+            return String(text ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function parseItems(rawItems, fallbackPrice) {
+            if (!rawItems) return [];
+            try {
+                const parsed = typeof rawItems === 'string' ? JSON.parse(rawItems) : rawItems;
+                if (Array.isArray(parsed)) {
+                    return parsed.map(item => {
+                        if (typeof item === 'string') return { title: item, price: '' };
+                        return {
+                            title: item.title || item.name || 'Позиция',
+                            price: item.price !== undefined ? `${item.price} ₸` : ''
+                        };
+                    });
+                }
+            } catch (_) {
+                // Если строка не JSON — разделим по запятой
+            }
+            return String(rawItems)
+                .split(',')
+                .map(s => s.trim())
+                .filter(Boolean)
+                .map(title => ({ title, price: fallbackPrice ? `${fallbackPrice} ₸` : '' }));
+        }
 
         async function loadOrders() {
-            const selectedDate = document.getElementById('order-date-filter').value;
+            if (!dateInput.value) {
+                dateInput.value = getTodayISO();
+            }
+            const selectedDate = dateInput.value;
+
             try {
-                const response = await fetch(`/api/orders?date=${selectedDate}`);
+                const response = await fetch(`/api/orders?date=${encodeURIComponent(selectedDate)}`);
                 const orders = await response.json();
+                if (!response.ok || !Array.isArray(orders)) {
+                    throw new Error(orders.error || 'Ошибка загрузки заказов');
+                }
                 renderKanban(orders);
             } catch (error) {
                 console.error('Ошибка загрузки заказов:', error);
@@ -94,10 +158,11 @@
             let compCount = 0;
 
             if (orders.length === 0) {
-                prepCol.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">Нет заказов на эту дату</p>';
-                readyCol.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">Нет заказов на эту дату</p>';
-                compCol.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">Нет заказов на эту дату</p>';
-                
+                const emptyMsg = '<p class="text-sm text-slate-400 text-center py-8">Нет заказов за выбранную дату</p>';
+                prepCol.innerHTML = emptyMsg;
+                readyCol.innerHTML = emptyMsg;
+                compCol.innerHTML = emptyMsg;
+
                 document.getElementById('count-preparing').innerText = '0';
                 document.getElementById('count-ready').innerText = '0';
                 document.getElementById('count-completed').innerText = '0';
@@ -105,40 +170,50 @@
             }
 
             orders.forEach(order => {
-                let itemsList = [];
-                try {
-                    itemsList = JSON.parse(order.items);
-                } catch (e) {
-                    itemsList = [{ title: order.items, price: order.total_price }];
-                }
+                const itemsList = parseItems(order.items, order.total_price);
+                const status = order.status || 'Новый';
+                const payment = order.payment_method || 'Наличные';
+                const isKaspi = payment.toLowerCase().includes('kaspi') || payment.toLowerCase().includes('qr');
 
-                const card = document.createElement('div');
-                card.className = 'bg-gray-50 border border-gray-200 rounded-xl p-4 shadow-sm';
+                const paymentBadgeClass = isKaspi
+                    ? 'bg-rose-100 text-rose-700 border border-rose-200'
+                    : 'bg-slate-200/80 text-slate-700 border border-slate-300/70';
+
+                const card = document.createElement('article');
+                card.className = 'bg-slate-50 border border-slate-200 rounded-xl p-4 shadow-sm hover:border-slate-300 transition';
                 card.innerHTML = `
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="font-bold text-gray-900">Заказ #${order.id}</span>
-                        <span class="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-md font-semibold">${order.total_price} ₸</span>
+                    <div class="flex justify-between items-center gap-2 mb-2.5">
+                        <span class="font-bold text-slate-900 text-sm">Заказ #${escapeHtml(order.id)}</span>
+                        <span class="text-xs bg-orange-500 text-white px-2.5 py-1 rounded-lg font-bold">${escapeHtml(order.total_price ?? 0)} ₸</span>
                     </div>
-                    <div class="text-xs text-gray-600 mb-2 space-y-0.5">
-                        <p><b>Студент:</b> ${order.student_name || 'Аноним'}</p>
-                        <p><b>Группа:</b> ${order.group_id || 'Не указана'}</p>
-                        <p><b>Время:</b> ${order.pickup_time || 'Ближайшее'}</p>
-                        <p><b>Оплата:</b> ${order.payment_method || 'Наличные'}</p>
-                        <p class="text-gray-400 text-[10px]">Дата: ${order.created_at}</p>
+
+                    <div class="text-xs text-slate-600 space-y-1 mb-3">
+                        <p><span class="font-semibold text-slate-700">Студент:</span> ${escapeHtml(order.student_name || 'Аноним')}</p>
+                        <p><span class="font-semibold text-slate-700">Группа:</span> ${escapeHtml(order.group_id || 'Не указана')}</p>
+                        <p><span class="font-semibold text-slate-700">Время:</span> ${escapeHtml(order.pickup_time || 'Ближайшее')}</p>
+                        <div class="pt-0.5 flex items-center justify-between gap-2">
+                            <span class="text-[11px] font-semibold px-2 py-0.5 rounded-md ${paymentBadgeClass}">${escapeHtml(payment)}</span>
+                            <span class="text-[11px] text-slate-400">${escapeHtml(order.created_at || '')}</span>
+                        </div>
                     </div>
-                    <div class="border-t border-gray-200 pt-2 mt-2">
-                        <p class="text-xs font-bold text-gray-700 mb-1">Состав:</p>
-                        <ul class="text-xs text-gray-600 space-y-1">
-                            ${itemsList.map(i => `<li>• ${i.title} (${i.price} ₸)</li>`).join('')}
+
+                    <div class="border-t border-slate-200 pt-2.5">
+                        <p class="text-xs font-bold text-slate-700 mb-1.5">Состав:</p>
+                        <ul class="text-xs text-slate-600 space-y-1">
+                            ${itemsList.map(i => `
+                                <li class="flex justify-between gap-2">
+                                    <span>• ${escapeHtml(i.title)}</span>
+                                    <span class="font-medium text-slate-700 shrink-0">${escapeHtml(i.price)}</span>
+                                </li>
+                            `).join('')}
                         </ul>
                     </div>
                 `;
 
-                const status = order.status || 'Новый';
                 if (status === 'Новый' || status === 'Готовятся') {
                     prepCount++;
                     prepCol.appendChild(card);
-                } else if (status === 'Готов к выдаче') {
+                } else if (status === 'Готов к выдаче' || status === 'Готовы к выдаче') {
                     readyCount++;
                     readyCol.appendChild(card);
                 } else {
@@ -151,13 +226,14 @@
             document.getElementById('count-ready').innerText = readyCount;
             document.getElementById('count-completed').innerText = compCount;
 
-            if (prepCount === 0) prepCol.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">Нет заказов</p>';
-            if (readyCount === 0) readyCol.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">Нет заказов</p>';
-            if (compCount === 0) compCol.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">Нет заказов</p>';
+            const emptyColMsg = '<p class="text-sm text-slate-400 text-center py-8">Нет заказов в этой колонке</p>';
+            if (prepCount === 0) prepCol.innerHTML = emptyColMsg;
+            if (readyCount === 0) readyCol.innerHTML = emptyColMsg;
+            if (compCount === 0) compCol.innerHTML = emptyColMsg;
         }
 
-        // Автообновление каждые 3 секунды
-        setInterval(loadOrders, 3000);
+        dateInput.value = getTodayISO();
+        setInterval(loadOrders, 4000);
         loadOrders();
     </script>
 </body>
